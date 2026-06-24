@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Manage Questions - ExamPortal</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+    <div th:replace="~{fragments/layout :: header}"></div>
+
+    <div class="container my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a th:href="@{/admin/exams}">Exams</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Questions</li>
+                    </ol>
+                </nav>
+                <h2 class="mb-0">Questions for: <span th:text="${exam.title}">Exam Title</span></h2>
+            </div>
+            <a th:href="@{/admin/exam/{id}/question/new(id=${exam.id})}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Add Question
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-4">#</th>
+                                <th scope="col">Question Text</th>
+                                <th scope="col">Correct Option</th>
+                                <th scope="col">Marks</th>
+                                <th scope="col">Difficulty</th>
+                                <th scope="col" class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${questions.empty}">
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                    No questions added yet. Click "Add Question" to get started.
+                                </td>
+                            </tr>
+                            <tr th:each="question, stat : ${questions}">
+                                <td class="ps-4 fw-medium text-muted" th:text="${stat.count}">1</td>
+                                <td>
+                                    <span class="d-inline-block text-truncate" style="max-width: 300px;" th:text="${question.questionText}">
+                                        Question text here
+                                    </span>
+                                </td>
+                                <td><span class="badge bg-success" th:text="${question.correctOption}">A</span></td>
+                                <td th:text="${question.marks}">1</td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${question.difficulty == 'EASY' ? 'bg-success' : (question.difficulty == 'HARD' ? 'bg-danger' : 'bg-warning')}"
+                                          th:text="${question.difficulty}">MEDIUM
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a th:href="@{/admin/exam/{examId}/question/edit/{id}(examId=${exam.id}, id=${question.id})}" class="btn btn-sm btn-outline-primary me-2">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/admin/question/delete/{id}(id=${question.id})}" method="post" class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete this question?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

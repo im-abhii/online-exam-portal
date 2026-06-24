@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title th:text="${exam.title} + ' — ExamPortal'">Exam — ExamPortal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link th:href="@{/css/exam.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Exam Data for JavaScript -->
+<script th:inline="javascript">
+  const EXAM_DATA = {
+    attemptId: [[${attempt.id}]],
+    examTitle: [[${exam.title}]],
+    candidateName: [[${attempt.user.firstName + ' ' + attempt.user.lastName}]],
+    remainingSeconds: [[${remainingSeconds}]],
+    maxWarnings: [[${maxWarnings}]],
+    warningCount: [[${warningCount}]],
+    questions: /*[[${questionsData}]]*/ [],
+    answers: /*[[${answersData}]]*/ {}
+  };
+</script>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Submitting...</span>
+  </div>
+  <p>Submitting your exam, please wait...</p>
+</div>
+
+<!-- Exam Header Bar -->
+<header class="exam-header">
+  <div class="exam-title">
+    <i class="bi bi-journal-text me-2"></i>
+    <span th:text="${exam.title}">Exam Title</span>
+  </div>
+  <div class="candidate-name d-none d-md-block">
+    Candidate: <span th:text="${attempt.user.firstName + ' ' + attempt.user.lastName}">Student Name</span>
+  </div>
+  <div class="timer" id="examTimer">
+    <i class="bi bi-clock"></i>
+    <span id="timerDisplay">00:00</span>
+  </div>
+</header>
+
+<!-- Exam Body -->
+<div class="exam-body">
+  <div class="row g-3">
+    <!-- Main Question Area -->
+    <div class="col-lg-9">
+      <div class="question-area">
+        <div class="question-header">
+          <span class="question-number" id="questionNumber">Question 1 of 20</span>
+          <span class="question-marks" id="questionMarks">Marks: 1</span>
+        </div>
+        <div class="question-text" id="questionText">
+          Loading question...
+        </div>
+        <div class="options-list" id="optionsList">
+          <!-- Options rendered by JS -->
+        </div>
+        <div class="exam-actions">
+          <button type="button" class="btn btn-outline-warning btn-mark-review" id="btnMarkReview"
+                  title="Mark for Review">
+            <i class="bi bi-flag me-1"></i>Mark for Review
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-clear-response" id="btnClearResponse"
+                  title="Clear Response">
+            <i class="bi bi-eraser me-1"></i>Clear
+          </button>
+          <button type="button" class="btn btn-outline-secondary" id="btnPrev" disabled>
+            <i class="bi bi-chevron-left me-1"></i>Previous
+          </button>
+          <button type="button" class="btn btn-primary" id="btnNext">
+            Save &amp; Next<i class="bi bi-chevron-right ms-1"></i>
+          </button>
+          <button type="button" class="btn btn-danger btn-submit-exam" id="btnSubmit"
+                  data-bs-toggle="modal" data-bs-target="#submitModal">
+            <i class="bi bi-send me-1"></i>Submit Exam
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question Palette Sidebar -->
+    <div class="col-lg-3">
+      <div class="question-palette">
+        <div class="palette-title">
+          <i class="bi bi-grid-3x3-gap me-1"></i>Question Palette
+        </div>
+        <div class="palette-grid" id="paletteGrid">
+          <!-- Palette buttons rendered by JS -->
+        </div>
+        <div class="palette-legend">
+          <div class="legend-item">
+            <span class="legend-color not-visited"></span>
+            <span>Not Visited</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color answered"></span>
+            <span>Answered</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color not-answered"></span>
+            <span>Not Answered</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color marked-review"></span>
+            <span>Marked for Review</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Confirmation Modal -->
+<div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="submitModalLabel">Confirm Submission</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3">
+          <i class="bi bi-exclamation-triangle" style="font-size:2.5rem;color:#d97706;"></i>
+        </div>
+        <p class="text-center mb-3" style="font-size:1rem;color:#475569;">
+          Are you sure you want to submit this exam? This action cannot be undone.
+        </p>
+        <div class="submit-summary" id="submitSummary">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmSubmitBtn">
+          <i class="bi bi-send me-1"></i>Confirm Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Modal -->
+<div class="modal fade" id="warningModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"
+     aria-labelledby="warningModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body py-4">
+        <div class="warning-icon">
+          <i class="bi bi-exclamation-octagon-fill"></i>
+        </div>
+        <h5 class="text-center text-danger fw-bold mb-3">Warning! Tab Switch Detected</h5>
+        <p class="warning-text">
+          You have switched away from the exam window.
+        </p>
+        <p class="warning-text">
+          Warning <span class="warning-count" id="warningCountDisplay">0</span>
+          of <span class="warning-count" id="maxWarningDisplay">3</span>.
+        </p>
+        <p class="warning-text mt-2" style="font-size:0.8125rem;">
+          Continuing to switch tabs will result in your exam being <strong>auto-submitted</strong>.
+        </p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">
+          <i class="bi bi-check-lg me-1"></i>I Understand
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/exam.js}"></script>
+<script th:src="@{/js/anti-cheat.js}"></script>
+</body>
+</html>

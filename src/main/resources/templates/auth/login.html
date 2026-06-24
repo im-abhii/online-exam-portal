@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title>Login — ExamPortal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link th:href="@{/css/style.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <h1><i class="bi bi-mortarboard-fill"></i> ExamPortal</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${param.error}" class="alert alert-danger" role="alert">
+      <i class="bi bi-exclamation-circle me-1"></i>
+      Invalid email or password. Please try again.
+    </div>
+
+    <!-- Logout Success -->
+    <div th:if="${param.logout}" class="alert alert-success" role="alert">
+      <i class="bi bi-check-circle me-1"></i>
+      You have been logged out successfully.
+    </div>
+
+    <!-- Registration Success -->
+    <div th:if="${param.registered}" class="alert alert-success" role="alert">
+      <i class="bi bi-check-circle me-1"></i>
+      Registration successful! Please sign in.
+    </div>
+
+    <form th:action="@{/login}" method="post">
+      <div class="mb-3">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+          <input type="email" class="form-control" id="email" name="email"
+                 placeholder="Enter your email" required autofocus/>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+          <input type="password" class="form-control" id="password" name="password"
+                 placeholder="Enter your password" required/>
+        </div>
+      </div>
+
+      <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="rememberMe" name="remember-me"/>
+        <label class="form-check-label" for="rememberMe" style="font-size:0.875rem;">Remember me</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-2">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a th:href="@{/register}">Create one</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

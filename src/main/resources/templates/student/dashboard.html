@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title>Student Dashboard — ExamPortal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link th:href="@{/css/style.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: header}"></div>
+
+<main class="page-content">
+  <div class="container">
+    <!-- Welcome -->
+    <div class="mb-4">
+      <h1 class="page-title">Welcome back, <span th:text="${user.firstName}">Student</span>!</h1>
+      <p class="page-subtitle">Here's an overview of your exam activity.</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-lg-4">
+        <div class="card stat-card blue">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div class="stat-icon blue">
+              <i class="bi bi-journal-text"></i>
+            </div>
+            <div>
+              <div class="stat-value" th:text="${upcomingExams != null ? upcomingExams.size() : 0}">0</div>
+              <div class="stat-label">Available Exams</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="card stat-card green">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div class="stat-icon green">
+              <i class="bi bi-check-circle"></i>
+            </div>
+            <div>
+              <div class="stat-value" th:text="${totalCompleted != null ? totalCompleted : 0}">0</div>
+              <div class="stat-label">Completed Exams</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="card stat-card amber">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div class="stat-icon amber">
+              <i class="bi bi-graph-up"></i>
+            </div>
+            <div>
+              <div class="stat-value" th:text="${averageScore != null ? #numbers.formatDecimal(averageScore, 1, 1) : '0.0'}">0.0</div>
+              <div class="stat-label">Average Score %</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Exams -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-journal-text me-2"></i>Available Exams</span>
+        <a th:href="@{/student/exams}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div th:if="${upcomingExams == null || upcomingExams.isEmpty()}" class="empty-state">
+          <i class="bi bi-journal-x"></i>
+          <p>No exams available at the moment.</p>
+        </div>
+        <div class="table-responsive" th:if="${upcomingExams != null && !upcomingExams.isEmpty()}">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Subject</th>
+                <th>Duration</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="exam : ${upcomingExams}">
+                <td>
+                  <span class="fw-semibold" th:text="${exam.title}">Exam Title</span>
+                </td>
+                <td th:text="${exam.subject}">Subject</td>
+                <td>
+                  <i class="bi bi-clock me-1 text-muted"></i>
+                  <span th:text="${exam.durationMinutes}">60</span> min
+                </td>
+                <td th:text="${#temporals.format(exam.startTime, 'dd MMM yyyy, hh:mm a')}">01 Jan 2026</td>
+                <td th:text="${#temporals.format(exam.endTime, 'dd MMM yyyy, hh:mm a')}">01 Jan 2026</td>
+                <td class="text-end">
+                  <span th:if="${attemptedExamIds != null && attemptedExamIds.contains(exam.id)}"
+                        class="badge badge-attempted">
+                    <i class="bi bi-check2 me-1"></i>Completed
+                  </span>
+                  <a th:unless="${attemptedExamIds != null && attemptedExamIds.contains(exam.id)}"
+                     th:href="@{/exam/instructions/{id}(id=${exam.id})}"
+                     class="btn btn-sm btn-primary">
+                    <i class="bi bi-play-fill me-1"></i>Start Exam
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Results -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart me-2"></i>Recent Results</span>
+        <a th:href="@{/student/results}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div th:if="${recentAttempts == null || recentAttempts.isEmpty()}" class="empty-state">
+          <i class="bi bi-clipboard-x"></i>
+          <p>No exam results yet. Take an exam to see your results here.</p>
+        </div>
+        <div class="table-responsive" th:if="${recentAttempts != null && !recentAttempts.isEmpty()}">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Exam Title</th>
+                <th>Score</th>
+                <th>Percentage</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="attempt : ${recentAttempts}">
+                <td class="fw-semibold" th:text="${attempt.exam.title}">Exam Title</td>
+                <td>
+                  <span th:text="${attempt.score}">0</span> /
+                  <span th:text="${attempt.totalMarks}">100</span>
+                </td>
+                <td>
+                  <span th:text="${#numbers.formatDecimal(attempt.percentage, 1, 1)}">0.0</span>%
+                </td>
+                <td>
+                  <span th:if="${attempt.passed}" class="badge badge-pass">
+                    <i class="bi bi-check-circle me-1"></i>Passed
+                  </span>
+                  <span th:unless="${attempt.passed}" class="badge badge-fail">
+                    <i class="bi bi-x-circle me-1"></i>Failed
+                  </span>
+                </td>
+                <td th:text="${#temporals.format(attempt.endTime, 'dd MMM yyyy')}">01 Jan 2026</td>
+                <td class="text-end">
+                  <a th:href="@{/exam/result/{id}(id=${attempt.id})}"
+                     class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye me-1"></i>View
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
