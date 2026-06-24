@@ -149,6 +149,6 @@ This project is built for educational purposes as part of the AICTE OIBSIP Inter
 
 ## 👤 Author
 
-**Your Name**
-- GitHub: [@your-username](https://github.com/your-username)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/your-profile)
+**Abhishek Mishra**  
+*Student, Chandigarh University*
+- GitHub: [@im-abhii](https://github.com/im-abhii)
